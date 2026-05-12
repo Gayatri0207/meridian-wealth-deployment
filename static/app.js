@@ -8,7 +8,7 @@
   const sendBtn     = $("#send");
   const newChatBtn  = $("#new-chat");
   const traceToggle = $("#trace-toggle");
-  const statusDot   = $("#status-dot");
+  const statusPill  = $("#status-pill");
   const statusText  = $("#status-text");
   const convIdEl    = $("#conv-id");
 
@@ -16,19 +16,25 @@
   let inFlight = false;
 
   // --- Status probe ----------------------------------------------------
+  function setStatus(kind, label, title) {
+    statusPill.className = `status-pill status--${kind}`;
+    statusText.textContent = label;
+    statusPill.title = title || "";
+  }
+
   async function checkHealth() {
     try {
       const r = await fetch("/health");
       if (!r.ok) throw new Error(`status ${r.status}`);
       const h = await r.json();
       const ok = h.status === "ok";
-      statusDot.className = `dot dot--${ok ? "ok" : "degraded"}`;
-      statusText.textContent = ok ? "online" : "degraded";
-      statusText.title = `db=${h.db_connected}  vectorstore=${h.vectorstore_loaded}  tavily=${h.tavily_configured}`;
+      setStatus(
+        ok ? "ok" : "degraded",
+        ok ? "online" : "degraded",
+        `db=${h.db_connected}  vectorstore=${h.vectorstore_loaded}  tavily=${h.tavily_configured}`,
+      );
     } catch (err) {
-      statusDot.className = "dot dot--error";
-      statusText.textContent = "offline";
-      statusText.title = String(err);
+      setStatus("error", "offline", String(err));
     }
   }
 
